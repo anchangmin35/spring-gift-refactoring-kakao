@@ -108,9 +108,14 @@ public class CommonSteps {
     @Then("옵션 추가가 거부된다")
     @Then("옵션 삭제가 거부된다")
     @Then("주문이 거부된다")
-    @Then("인증에 실패한다")
     public void 응답_BAD_REQUEST() {
         assertThat(context.getResponse().statusCode()).isEqualTo(400);
+    }
+
+    // 401 Unauthorized
+    @Then("인증에 실패한다")
+    public void 응답_UNAUTHORIZED() {
+        assertThat(context.getResponse().statusCode()).isEqualTo(401);
     }
 
     // 403 Forbidden
