@@ -3,11 +3,13 @@ package gift.option;
 import gift.product.Product;
 import gift.product.ProductRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
+@Transactional(readOnly = true)
 public class OptionService {
     private final OptionRepository optionRepository;
     private final ProductRepository productRepository;
@@ -22,6 +24,7 @@ public class OptionService {
         return optionRepository.findByProductId(productId);
     }
 
+    @Transactional
     public Option createOption(Long productId, OptionRequest request) {
         validateName(request.name());
         Product product = findProduct(productId);
@@ -33,6 +36,7 @@ public class OptionService {
         return optionRepository.save(new Option(product, request.name(), request.quantity()));
     }
 
+    @Transactional
     public void deleteOption(Long productId, Long optionId) {
         findProduct(productId);
 

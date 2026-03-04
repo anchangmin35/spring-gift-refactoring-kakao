@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
+@Transactional(readOnly = true)
 public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
@@ -33,6 +34,7 @@ public class ProductService {
             .orElseThrow(() -> new NoSuchElementException("상품이 존재하지 않습니다. id=" + id));
     }
 
+    @Transactional
     public Product createProduct(String name, int price, String imageUrl, Long categoryId) {
         validateName(name);
         Category category = findCategory(categoryId);
@@ -48,6 +50,7 @@ public class ProductService {
         return product;
     }
 
+    @Transactional
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
     }

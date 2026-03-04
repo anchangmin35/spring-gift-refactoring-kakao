@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
+@Transactional(readOnly = true)
 public class MemberService {
     private final MemberRepository memberRepository;
 
@@ -14,6 +15,7 @@ public class MemberService {
         this.memberRepository = memberRepository;
     }
 
+    @Transactional
     public Member register(String email, String password) {
         if (memberRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("이미 등록된 이메일입니다.");
@@ -60,10 +62,12 @@ public class MemberService {
         member.chargePoint(amount);
     }
 
+    @Transactional
     public void deleteMember(Long id) {
         memberRepository.deleteById(id);
     }
 
+    @Transactional
     public Member findOrCreateByKakaoLogin(String email, String kakaoAccessToken) {
         Member member = memberRepository.findByEmail(email)
             .orElseGet(() -> new Member(email));
