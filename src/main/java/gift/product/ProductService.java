@@ -48,18 +48,6 @@ public class ProductService {
         return product;
     }
 
-    public void saveProduct(String name, int price, String imageUrl, Long categoryId) {
-        Category category = findCategory(categoryId);
-        productRepository.save(new Product(name, price, imageUrl, category));
-    }
-
-    @Transactional
-    public void saveProduct(Long id, String name, int price, String imageUrl, Long categoryId) {
-        Product product = getProduct(id);
-        Category category = findCategory(categoryId);
-        product.update(name, price, imageUrl, category);
-    }
-
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
     }
