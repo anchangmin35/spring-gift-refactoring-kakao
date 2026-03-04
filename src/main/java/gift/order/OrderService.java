@@ -4,9 +4,6 @@ import gift.member.Member;
 import gift.member.MemberRepository;
 import gift.option.Option;
 import gift.option.OptionRepository;
-import gift.product.Product;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,23 +14,21 @@ import java.util.NoSuchElementException;
 @Service
 @Transactional(readOnly = true)
 public class OrderService {
-    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
-
     private final OrderRepository orderRepository;
     private final OptionRepository optionRepository;
     private final MemberRepository memberRepository;
-    private final KakaoMessageClient kakaoMessageClient;
+    private final OrderNotificationSender notificationSender;
 
     public OrderService(
         OrderRepository orderRepository,
         OptionRepository optionRepository,
         MemberRepository memberRepository,
-        KakaoMessageClient kakaoMessageClient
+        OrderNotificationSender notificationSender
     ) {
         this.orderRepository = orderRepository;
         this.optionRepository = optionRepository;
         this.memberRepository = memberRepository;
-        this.kakaoMessageClient = kakaoMessageClient;
+        this.notificationSender = notificationSender;
     }
 
     public Page<Order> getOrders(Long memberId, Pageable pageable) {
@@ -54,19 +49,7 @@ public class OrderService {
 
         Order saved = orderRepository.save(new Order(option, memberId, quantity, message));
 
-        sendKakaoMessageIfPossible(member, saved, option);
+        notificationSender.send(member, saved, option);
         return saved;
-    }
-
-    private void sendKakaoMessageIfPossible(Member member, Order order, Option option) {
-        if (member.getSocialAccessToken() == null) {
-            return;
-        }
-        try {
-            Product product = option.getProduct();
-            kakaoMessageClient.sendToMe(member.getSocialAccessToken(), order, product);
-        } catch (Exception e) {
-            log.warn("카카오 메시지 전송 실패: memberId={}", member.getId(), e);
-        }
     }
 }

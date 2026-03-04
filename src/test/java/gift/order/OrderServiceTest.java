@@ -19,12 +19,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
@@ -39,7 +35,7 @@ class OrderServiceTest {
     private MemberRepository memberRepository;
 
     @Mock
-    private KakaoMessageClient kakaoMessageClient;
+    private OrderNotificationSender notificationSender;
 
     @InjectMocks
     private OrderService orderService;
@@ -104,30 +100,14 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("카카오 토큰이 없는 회원은 카카오 메시지를 전송하지 않는다")
-    void createOrderWithoutKakaoToken() {
+    @DisplayName("주문 완료 후 알림 전송이 호출된다")
+    void createOrderSendsNotification() {
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
         given(optionRepository.findById(1L)).willReturn(Optional.of(option));
         given(orderRepository.save(any(Order.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         orderService.createOrder(1L, 1L, 1, "");
 
-        then(kakaoMessageClient).should(never()).sendToMe(anyString(), any(Order.class), any(Product.class));
-    }
-
-    @Test
-    @DisplayName("카카오 메시지 전송에 실패해도 주문은 정상 저장된다")
-    void createOrderKakaoMessageFails() {
-        member.updateSocialAccessToken("kakao-token");
-        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-        given(optionRepository.findById(1L)).willReturn(Optional.of(option));
-        given(orderRepository.save(any(Order.class))).willAnswer(invocation -> invocation.getArgument(0));
-        doThrow(new RuntimeException("카카오 API 오류"))
-            .when(kakaoMessageClient).sendToMe(eq("kakao-token"), any(Order.class), any(Product.class));
-
-        Order order = orderService.createOrder(1L, 1L, 2, "선물");
-
-        assertThat(order.getQuantity()).isEqualTo(2);
-        then(orderRepository).should().save(any(Order.class));
+        then(notificationSender).should().send(any(Member.class), any(Order.class), any(Option.class));
     }
 }
