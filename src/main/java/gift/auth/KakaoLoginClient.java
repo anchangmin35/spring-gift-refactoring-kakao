@@ -35,7 +35,7 @@ public class KakaoLoginClient {
     public KakaoUserResponse requestUserInfo(String accessToken) {
         return restClient.get()
             .uri("https://kapi.kakao.com/v2/user/me")
-            .header("Authorization", "Bearer " + accessToken)
+            .header("Authorization", AuthenticationResolver.BEARER_PREFIX + accessToken)
             .retrieve()
             .body(KakaoUserResponse.class);
     }
