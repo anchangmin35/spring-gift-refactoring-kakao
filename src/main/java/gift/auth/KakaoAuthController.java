@@ -1,7 +1,7 @@
 package gift.auth;
 
 import gift.member.Member;
-import gift.member.MemberRepository;
+import gift.member.MemberService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,22 +18,22 @@ import org.springframework.web.util.UriComponentsBuilder;
  *    retrieves user info, auto-registers the member if new, and issues a service JWT
  */
 @RestController
-@RequestMapping(path = "/api/auth/kakao")
+@RequestMapping("/api/auth/kakao")
 public class KakaoAuthController {
     private final KakaoLoginProperties properties;
-    private final KakaoLoginClient kakaoLoginClient;
-    private final MemberRepository memberRepository;
+    private final SocialLoginHandler socialLoginHandler;
+    private final MemberService memberService;
     private final JwtProvider jwtProvider;
 
     public KakaoAuthController(
         KakaoLoginProperties properties,
-        KakaoLoginClient kakaoLoginClient,
-        MemberRepository memberRepository,
+        SocialLoginHandler socialLoginHandler,
+        MemberService memberService,
         JwtProvider jwtProvider
     ) {
         this.properties = properties;
-        this.kakaoLoginClient = kakaoLoginClient;
-        this.memberRepository = memberRepository;
+        this.socialLoginHandler = socialLoginHandler;
+        this.memberService = memberService;
         this.jwtProvider = jwtProvider;
     }
 
@@ -54,14 +54,12 @@ public class KakaoAuthController {
 
     @GetMapping(path = "/callback")
     public ResponseEntity<TokenResponse> callback(@RequestParam("code") String code) {
-        KakaoLoginClient.KakaoTokenResponse kakaoToken = kakaoLoginClient.requestAccessToken(code);
-        KakaoLoginClient.KakaoUserResponse kakaoUser = kakaoLoginClient.requestUserInfo(kakaoToken.accessToken());
-        String email = kakaoUser.email();
+        SocialLoginResult result = socialLoginHandler.login(code);
 
-        Member member = memberRepository.findByEmail(email)
-            .orElseGet(() -> new Member(email));
-        member.updateKakaoAccessToken(kakaoToken.accessToken());
-        memberRepository.save(member);
+        Member member = memberService.existsByEmail(result.email())
+            ? memberService.getMemberByEmail(result.email())
+            : memberService.registerSocialMember(result.email());
+        member.updateSocialAccessToken(result.accessToken());
 
         String token = jwtProvider.createToken(member.getEmail());
         return ResponseEntity.ok(new TokenResponse(token));

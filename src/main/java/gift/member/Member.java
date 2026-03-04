@@ -1,5 +1,6 @@
 package gift.member;
 
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,9 +20,10 @@ public class Member {
 
     private String email;
 
-    private String password;
+    @Embedded
+    private Password password;
 
-    private String kakaoAccessToken;
+    private String socialAccessToken;
 
     private int point;
 
@@ -30,7 +32,7 @@ public class Member {
 
     public Member(String email, String password) {
         this.email = email;
-        this.password = password;
+        this.password = new Password(password);
     }
 
     public Member(String email) {
@@ -39,21 +41,21 @@ public class Member {
 
     public void update(String email, String password) {
         this.email = email;
-        this.password = password;
+        this.password = new Password(password);
     }
 
-    public void updateKakaoAccessToken(String kakaoAccessToken) {
-        this.kakaoAccessToken = kakaoAccessToken;
+    public void updateSocialAccessToken(String socialAccessToken) {
+        this.socialAccessToken = socialAccessToken;
     }
 
     public void chargePoint(int amount) {
         if (amount <= 0) {
-            throw new IllegalArgumentException("Amount must be greater than zero.");
+            throw new IllegalArgumentException("충전 금액은 1 이상이어야 합니다.");
         }
         this.point += amount;
     }
 
-    // point deduction for order payment
+    /** point deduction for order payment */
     public void deductPoint(int amount) {
         if (amount <= 0) {
             throw new IllegalArgumentException("차감 금액은 1 이상이어야 합니다.");
@@ -72,12 +74,12 @@ public class Member {
         return email;
     }
 
-    public String getPassword() {
-        return password;
+    public boolean matchesPassword(String rawPassword) {
+        return password != null && password.matches(rawPassword);
     }
 
-    public String getKakaoAccessToken() {
-        return kakaoAccessToken;
+    public String getSocialAccessToken() {
+        return socialAccessToken;
     }
 
     public int getPoint() {

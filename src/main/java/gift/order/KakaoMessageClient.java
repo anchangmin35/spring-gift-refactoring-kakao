@@ -1,5 +1,7 @@
 package gift.order;
 
+import static gift.auth.AuthenticationResolver.BEARER_PREFIX;
+
 import gift.product.Product;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
@@ -21,7 +23,7 @@ public class KakaoMessageClient {
 
         restClient.post()
             .uri("https://kapi.kakao.com/v2/api/talk/memo/default/send")
-            .header("Authorization", "Bearer " + accessToken)
+            .header("Authorization", BEARER_PREFIX + accessToken)
             .header("Content-Type", "application/x-www-form-urlencoded")
             .body(params)
             .retrieve()
