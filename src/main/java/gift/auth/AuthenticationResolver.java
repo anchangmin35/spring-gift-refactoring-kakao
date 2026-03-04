@@ -29,8 +29,6 @@ public class AuthenticationResolver {
             String email = jwtProvider.getEmail(token);
             return memberRepository.findByEmail(email)
                 .orElseThrow(() -> new UnauthorizedException("회원을 찾을 수 없습니다."));
-        } catch (UnauthorizedException e) {
-            throw e;
         } catch (Exception e) {
             throw new UnauthorizedException("유효하지 않은 인증 정보입니다.");
         }
