@@ -45,7 +45,7 @@ public class AdminMemberController {
             return "member/new";
         }
 
-        memberService.saveMember(email, password);
+        memberService.register(email, password);
         return "redirect:/admin/members";
     }
 

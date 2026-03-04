@@ -42,10 +42,6 @@ public class MemberService {
         return memberRepository.existsByEmail(email);
     }
 
-    public void saveMember(String email, String password) {
-        memberRepository.save(new Member(email, password));
-    }
-
     public void updateMember(Long id, String email, String password) {
         Member member = getMember(id);
         member.update(email, password);
