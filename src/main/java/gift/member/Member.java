@@ -23,7 +23,7 @@ public class Member {
     @Embedded
     private Password password;
 
-    private String kakaoAccessToken;
+    private String socialAccessToken;
 
     private int point;
 
@@ -44,8 +44,8 @@ public class Member {
         this.password = new Password(password);
     }
 
-    public void updateKakaoAccessToken(String kakaoAccessToken) {
-        this.kakaoAccessToken = kakaoAccessToken;
+    public void updateSocialAccessToken(String socialAccessToken) {
+        this.socialAccessToken = socialAccessToken;
     }
 
     public void chargePoint(int amount) {
@@ -78,8 +78,8 @@ public class Member {
         return password != null && password.matches(rawPassword);
     }
 
-    public String getKakaoAccessToken() {
-        return kakaoAccessToken;
+    public String getSocialAccessToken() {
+        return socialAccessToken;
     }
 
     public int getPoint() {

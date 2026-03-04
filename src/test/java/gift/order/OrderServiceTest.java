@@ -118,7 +118,7 @@ class OrderServiceTest {
     @Test
     @DisplayName("카카오 메시지 전송에 실패해도 주문은 정상 저장된다")
     void createOrderKakaoMessageFails() {
-        member.updateKakaoAccessToken("kakao-token");
+        member.updateSocialAccessToken("kakao-token");
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
         given(optionRepository.findById(1L)).willReturn(Optional.of(option));
         given(orderRepository.save(any(Order.class))).willAnswer(invocation -> invocation.getArgument(0));

@@ -68,10 +68,7 @@ public class MemberService {
     }
 
     @Transactional
-    public Member findOrCreateByKakaoLogin(String email, String kakaoAccessToken) {
-        Member member = memberRepository.findByEmail(email)
-            .orElseGet(() -> new Member(email));
-        member.updateKakaoAccessToken(kakaoAccessToken);
-        return memberRepository.save(member);
+    public Member registerSocialMember(String email) {
+        return memberRepository.save(new Member(email));
     }
 }

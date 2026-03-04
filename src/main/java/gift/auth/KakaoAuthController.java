@@ -21,18 +21,18 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequestMapping("/api/auth/kakao")
 public class KakaoAuthController {
     private final KakaoLoginProperties properties;
-    private final KakaoLoginClient kakaoLoginClient;
+    private final SocialLoginHandler socialLoginHandler;
     private final MemberService memberService;
     private final JwtProvider jwtProvider;
 
     public KakaoAuthController(
         KakaoLoginProperties properties,
-        KakaoLoginClient kakaoLoginClient,
+        SocialLoginHandler socialLoginHandler,
         MemberService memberService,
         JwtProvider jwtProvider
     ) {
         this.properties = properties;
-        this.kakaoLoginClient = kakaoLoginClient;
+        this.socialLoginHandler = socialLoginHandler;
         this.memberService = memberService;
         this.jwtProvider = jwtProvider;
     }
@@ -54,11 +54,12 @@ public class KakaoAuthController {
 
     @GetMapping(path = "/callback")
     public ResponseEntity<TokenResponse> callback(@RequestParam("code") String code) {
-        KakaoLoginClient.KakaoTokenResponse kakaoToken = kakaoLoginClient.requestAccessToken(code);
-        KakaoLoginClient.KakaoUserResponse kakaoUser = kakaoLoginClient.requestUserInfo(kakaoToken.accessToken());
-        String email = kakaoUser.email();
+        SocialLoginResult result = socialLoginHandler.login(code);
 
-        Member member = memberService.findOrCreateByKakaoLogin(email, kakaoToken.accessToken());
+        Member member = memberService.existsByEmail(result.email())
+            ? memberService.getMemberByEmail(result.email())
+            : memberService.registerSocialMember(result.email());
+        member.updateSocialAccessToken(result.accessToken());
 
         String token = jwtProvider.createToken(member.getEmail());
         return ResponseEntity.ok(new TokenResponse(token));
