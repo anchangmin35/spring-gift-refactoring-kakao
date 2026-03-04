@@ -59,34 +59,35 @@ class OrderServiceTest {
     @Test
     @DisplayName("정상 주문 시 재고 차감, 포인트 차감, 주문 저장이 수행된다")
     void createOrder() {
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
         given(optionRepository.findById(1L)).willReturn(Optional.of(option));
         given(orderRepository.save(any(Order.class))).willAnswer(invocation -> invocation.getArgument(0));
 
-        Order order = orderService.createOrder(member, 1L, 3, "선물입니다");
+        Order order = orderService.createOrder(1L, 1L, 3, "선물입니다");
 
         assertThat(option.getQuantity()).isEqualTo(7);
         assertThat(member.getPoint()).isEqualTo(100000 - 4500 * 3);
         assertThat(order.getQuantity()).isEqualTo(3);
-        then(optionRepository).should().save(option);
-        then(memberRepository).should().save(member);
         then(orderRepository).should().save(any(Order.class));
     }
 
     @Test
     @DisplayName("존재하지 않는 옵션으로 주문하면 NoSuchElementException이 발생한다")
     void createOrderWithNonExistentOption() {
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
         given(optionRepository.findById(999L)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> orderService.createOrder(member, 999L, 1, ""))
+        assertThatThrownBy(() -> orderService.createOrder(1L, 999L, 1, ""))
             .isInstanceOf(NoSuchElementException.class);
     }
 
     @Test
     @DisplayName("재고보다 많은 수량을 주문하면 IllegalArgumentException이 발생한다")
     void createOrderExceedingStock() {
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
         given(optionRepository.findById(1L)).willReturn(Optional.of(option));
 
-        assertThatThrownBy(() -> orderService.createOrder(member, 1L, 11, ""))
+        assertThatThrownBy(() -> orderService.createOrder(1L, 1L, 11, ""))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -95,19 +96,21 @@ class OrderServiceTest {
     void createOrderInsufficientPoint() {
         Member poorMember = new Member("poor@test.com", "password");
         poorMember.chargePoint(100);
+        given(memberRepository.findById(2L)).willReturn(Optional.of(poorMember));
         given(optionRepository.findById(1L)).willReturn(Optional.of(option));
 
-        assertThatThrownBy(() -> orderService.createOrder(poorMember, 1L, 1, ""))
+        assertThatThrownBy(() -> orderService.createOrder(2L, 1L, 1, ""))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     @DisplayName("카카오 토큰이 없는 회원은 카카오 메시지를 전송하지 않는다")
     void createOrderWithoutKakaoToken() {
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
         given(optionRepository.findById(1L)).willReturn(Optional.of(option));
         given(orderRepository.save(any(Order.class))).willAnswer(invocation -> invocation.getArgument(0));
 
-        orderService.createOrder(member, 1L, 1, "");
+        orderService.createOrder(1L, 1L, 1, "");
 
         then(kakaoMessageClient).should(never()).sendToMe(anyString(), any(Order.class), any(Product.class));
     }
@@ -116,12 +119,13 @@ class OrderServiceTest {
     @DisplayName("카카오 메시지 전송에 실패해도 주문은 정상 저장된다")
     void createOrderKakaoMessageFails() {
         member.updateKakaoAccessToken("kakao-token");
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
         given(optionRepository.findById(1L)).willReturn(Optional.of(option));
         given(orderRepository.save(any(Order.class))).willAnswer(invocation -> invocation.getArgument(0));
         doThrow(new RuntimeException("카카오 API 오류"))
             .when(kakaoMessageClient).sendToMe(eq("kakao-token"), any(Order.class), any(Product.class));
 
-        Order order = orderService.createOrder(member, 1L, 2, "선물");
+        Order order = orderService.createOrder(1L, 1L, 2, "선물");
 
         assertThat(order.getQuantity()).isEqualTo(2);
         then(orderRepository).should().save(any(Order.class));

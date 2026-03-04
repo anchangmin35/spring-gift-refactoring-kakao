@@ -42,7 +42,7 @@ public class OrderController {
         @Valid @RequestBody OrderRequest request
     ) {
         Member member = authenticationResolver.extractMember(authorization);
-        Order saved = orderService.createOrder(member, request.optionId(), request.quantity(), request.message());
+        Order saved = orderService.createOrder(member.getId(), request.optionId(), request.quantity(), request.message());
         return ResponseEntity.created(URI.create("/api/orders/" + saved.getId()))
             .body(OrderResponse.from(saved));
     }
