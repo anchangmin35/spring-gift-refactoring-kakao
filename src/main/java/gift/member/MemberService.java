@@ -39,6 +39,11 @@ public class MemberService {
             .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다. id=" + id));
     }
 
+    public Member getMemberByEmail(String email) {
+        return memberRepository.findByEmail(email)
+            .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다. email=" + email));
+    }
+
     public boolean existsByEmail(String email) {
         return memberRepository.existsByEmail(email);
     }
