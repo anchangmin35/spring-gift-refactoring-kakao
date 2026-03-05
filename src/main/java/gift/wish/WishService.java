@@ -3,6 +3,7 @@ package gift.wish;
 import gift.exception.ForbiddenException;
 import gift.product.Product;
 import gift.product.ProductRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,11 +29,18 @@ public class WishService {
     @Transactional
     public Wish addWish(Long memberId, Long productId) {
         return wishRepository.findByMemberIdAndProductId(memberId, productId)
-            .orElseGet(() -> {
-                Product product = productRepository.findById(productId)
-                    .orElseThrow(() -> new NoSuchElementException("상품이 존재하지 않습니다. id=" + productId));
-                return wishRepository.save(new Wish(memberId, product));
-            });
+            .orElseGet(() -> saveNewWish(memberId, productId));
+    }
+
+    private Wish saveNewWish(Long memberId, Long productId) {
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new NoSuchElementException("상품이 존재하지 않습니다. id=" + productId));
+        try {
+            return wishRepository.save(new Wish(memberId, product));
+        } catch (DataIntegrityViolationException e) {
+            return wishRepository.findByMemberIdAndProductId(memberId, productId)
+                .orElseThrow(() -> e);
+        }
     }
 
     @Transactional
