@@ -9,9 +9,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -37,15 +38,28 @@ class OrderServiceTest {
     @Mock
     private OrderNotificationSender notificationSender;
 
-    @InjectMocks
+    @Mock
+    private TransactionTemplate transactionTemplate;
+
     private OrderService orderService;
 
     private Product product;
     private Option option;
     private Member member;
 
+    @SuppressWarnings("unchecked")
     @BeforeEach
     void setUp() {
+        given(transactionTemplate.execute(any(TransactionCallback.class)))
+            .willAnswer(invocation -> {
+                TransactionCallback<?> callback = invocation.getArgument(0);
+                return callback.doInTransaction(null);
+            });
+
+        orderService = new OrderService(
+            orderRepository, optionRepository, memberRepository, notificationSender, transactionTemplate
+        );
+
         product = new Product("아메리카노", 4500, "http://img.url", null);
         option = new Option(product, "ICE", 10);
         member = new Member("test@test.com", "password");
