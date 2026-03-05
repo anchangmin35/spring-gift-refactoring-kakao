@@ -5,6 +5,7 @@ import gift.member.MemberRepository;
 import gift.option.Option;
 import gift.option.OptionRepository;
 import gift.product.Product;
+import gift.wish.WishRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,9 @@ class OrderServiceTest {
     private MemberRepository memberRepository;
 
     @Mock
+    private WishRepository wishRepository;
+
+    @Mock
     private OrderNotificationSender notificationSender;
 
     @Mock
@@ -57,7 +61,7 @@ class OrderServiceTest {
             });
 
         orderService = new OrderService(
-            orderRepository, optionRepository, memberRepository, notificationSender, transactionTemplate
+            orderRepository, optionRepository, memberRepository, wishRepository, notificationSender, transactionTemplate
         );
 
         product = new Product("아메리카노", 4500, "http://img.url", null);
@@ -123,5 +127,17 @@ class OrderServiceTest {
         orderService.createOrder(1L, 1L, 1, "");
 
         then(notificationSender).should().send(any(Member.class), any(Order.class), any(Option.class));
+    }
+
+    @Test
+    @DisplayName("주문 완료 후 해당 상품의 위시가 삭제된다")
+    void createOrderDeletesWish() {
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(optionRepository.findByIdForUpdate(1L)).willReturn(Optional.of(option));
+        given(orderRepository.save(any(Order.class))).willAnswer(invocation -> invocation.getArgument(0));
+
+        orderService.createOrder(1L, 1L, 1, "");
+
+        then(wishRepository).should().deleteByMemberIdAndProductId(1L, product.getId());
     }
 }
