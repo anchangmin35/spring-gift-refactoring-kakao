@@ -25,7 +25,7 @@ public class AuthenticatedMemberArgumentResolver implements HandlerMethodArgumen
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
         return parameter.hasParameterAnnotation(AuthenticatedMember.class)
-            && Member.class.isAssignableFrom(parameter.getParameterType());
+            && MemberPrincipal.class.isAssignableFrom(parameter.getParameterType());
     }
 
     @Override
@@ -36,14 +36,15 @@ public class AuthenticatedMemberArgumentResolver implements HandlerMethodArgumen
         WebDataBinderFactory binderFactory
     ) {
         String authorization = webRequest.getHeader("Authorization");
-        return extractMember(authorization);
+        return extractPrincipal(authorization);
     }
 
-    private Member extractMember(String authorization) {
+    private MemberPrincipal extractPrincipal(String authorization) {
         try {
             String token = authorization.replace(BEARER_PREFIX, "");
             String email = jwtProvider.getEmail(token);
-            return memberService.getMemberByEmail(email);
+            Member member = memberService.getMemberByEmail(email);
+            return new MemberPrincipal(member.getId());
         } catch (Exception e) {
             throw new UnauthorizedException("유효하지 않은 인증 정보입니다.");
         }
