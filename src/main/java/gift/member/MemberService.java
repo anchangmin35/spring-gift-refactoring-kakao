@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -39,6 +40,10 @@ public class MemberService {
     public Member getMember(Long id) {
         return memberRepository.findById(id)
             .orElseThrow(() -> new NoSuchElementException("회원을 찾을 수 없습니다. id=" + id));
+    }
+
+    public Optional<Member> getMemberByEmailOrNull(String email) {
+        return memberRepository.findByEmail(email);
     }
 
     public Member getMemberByEmail(String email) {

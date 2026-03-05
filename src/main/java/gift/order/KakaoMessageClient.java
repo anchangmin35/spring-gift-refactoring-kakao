@@ -30,11 +30,16 @@ public class KakaoMessageClient {
             .toBodilessEntity();
     }
 
+    private String formatMessage(String rawMessage) {
+        if (rawMessage == null || rawMessage.isBlank()) {
+            return "";
+        }
+        return "\\n\\n💌 " + rawMessage;
+    }
+
     private String buildTemplate(Order order, Product product) {
         var totalPrice = String.format("%,d", product.getPrice() * order.getQuantity());
-        var message = order.getMessage() != null && !order.getMessage().isBlank()
-            ? "\\n\\n💌 " + order.getMessage()
-            : "";
+        var message = formatMessage(order.getMessage());
         return """
             {
                 "object_type": "text",

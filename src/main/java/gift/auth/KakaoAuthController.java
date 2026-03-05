@@ -56,9 +56,8 @@ public class KakaoAuthController {
     public ResponseEntity<TokenResponse> callback(@RequestParam("code") String code) {
         SocialLoginResult result = socialLoginHandler.login(code);
 
-        Member member = memberService.existsByEmail(result.email())
-            ? memberService.getMemberByEmail(result.email())
-            : memberService.registerSocialMember(result.email());
+        Member member = memberService.getMemberByEmailOrNull(result.email())
+            .orElseGet(() -> memberService.registerSocialMember(result.email()));
         member.updateSocialAccessToken(result.accessToken());
 
         String token = jwtProvider.createToken(member.getEmail());
