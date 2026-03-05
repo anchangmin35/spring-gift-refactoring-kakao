@@ -49,9 +49,9 @@ public class OrderService {
             Option option = findOption(optionId);
 
             option.subtractQuantity(quantity);
-            member.deductPoint(calculatePrice(option, quantity));
-
-            Order saved = orderRepository.save(new Order(option, memberId, quantity, message));
+            Order order = new Order(option, memberId, quantity, message);
+            member.deductPoint(order.getTotalPrice());
+            Order saved = orderRepository.save(order);
             wishRepository.deleteByMemberIdAndProductId(memberId, option.getProduct().getId());
             return new OrderTransactionResult(member, saved, option);
         });
@@ -70,7 +70,4 @@ public class OrderService {
             .orElseThrow(() -> new NoSuchElementException("옵션이 존재하지 않습니다. id=" + optionId));
     }
 
-    private int calculatePrice(Option option, int quantity) {
-        return option.getProduct().getPrice() * quantity;
-    }
 }
