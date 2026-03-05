@@ -42,4 +42,8 @@ public class Wish {
     public Product getProduct() {
         return product;
     }
+
+    public boolean isOwnedBy(Long memberId) {
+        return this.memberId.equals(memberId);
+    }
 }
