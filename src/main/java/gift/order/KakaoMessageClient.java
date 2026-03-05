@@ -1,6 +1,6 @@
 package gift.order;
 
-import static gift.auth.AuthenticationResolver.BEARER_PREFIX;
+import static gift.auth.AuthenticatedMemberArgumentResolver.BEARER_PREFIX;
 
 import gift.product.Product;
 import org.springframework.stereotype.Component;
