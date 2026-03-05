@@ -76,4 +76,12 @@ public class MemberService {
     public Member registerSocialMember(String email) {
         return memberRepository.save(new Member(email));
     }
+
+    @Transactional
+    public Member processSocialLogin(String email, String accessToken) {
+        Member member = memberRepository.findByEmail(email)
+            .orElseGet(() -> memberRepository.save(new Member(email)));
+        member.updateSocialAccessToken(accessToken);
+        return member;
+    }
 }
