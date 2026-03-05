@@ -61,7 +61,7 @@ public class OrderService {
     }
 
     private Option findOption(Long optionId) {
-        return optionRepository.findById(optionId)
+        return optionRepository.findByIdForUpdate(optionId)
             .orElseThrow(() -> new NoSuchElementException("옵션이 존재하지 않습니다. id=" + optionId));
     }
 

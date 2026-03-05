@@ -70,7 +70,7 @@ class OrderServiceTest {
     @DisplayName("정상 주문 시 재고 차감, 포인트 차감, 주문 저장이 수행된다")
     void createOrder() {
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-        given(optionRepository.findById(1L)).willReturn(Optional.of(option));
+        given(optionRepository.findByIdForUpdate(1L)).willReturn(Optional.of(option));
         given(orderRepository.save(any(Order.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         Order order = orderService.createOrder(1L, 1L, 3, "선물입니다");
@@ -85,7 +85,7 @@ class OrderServiceTest {
     @DisplayName("존재하지 않는 옵션으로 주문하면 NoSuchElementException이 발생한다")
     void createOrderWithNonExistentOption() {
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-        given(optionRepository.findById(999L)).willReturn(Optional.empty());
+        given(optionRepository.findByIdForUpdate(999L)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> orderService.createOrder(1L, 999L, 1, ""))
             .isInstanceOf(NoSuchElementException.class);
@@ -95,7 +95,7 @@ class OrderServiceTest {
     @DisplayName("재고보다 많은 수량을 주문하면 IllegalArgumentException이 발생한다")
     void createOrderExceedingStock() {
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-        given(optionRepository.findById(1L)).willReturn(Optional.of(option));
+        given(optionRepository.findByIdForUpdate(1L)).willReturn(Optional.of(option));
 
         assertThatThrownBy(() -> orderService.createOrder(1L, 1L, 11, ""))
             .isInstanceOf(IllegalArgumentException.class);
@@ -107,7 +107,7 @@ class OrderServiceTest {
         Member poorMember = new Member("poor@test.com", "password");
         poorMember.chargePoint(100);
         given(memberRepository.findById(2L)).willReturn(Optional.of(poorMember));
-        given(optionRepository.findById(1L)).willReturn(Optional.of(option));
+        given(optionRepository.findByIdForUpdate(1L)).willReturn(Optional.of(option));
 
         assertThatThrownBy(() -> orderService.createOrder(2L, 1L, 1, ""))
             .isInstanceOf(IllegalArgumentException.class);
@@ -117,7 +117,7 @@ class OrderServiceTest {
     @DisplayName("주문 완료 후 알림 전송이 호출된다")
     void createOrderSendsNotification() {
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-        given(optionRepository.findById(1L)).willReturn(Optional.of(option));
+        given(optionRepository.findByIdForUpdate(1L)).willReturn(Optional.of(option));
         given(orderRepository.save(any(Order.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         orderService.createOrder(1L, 1L, 1, "");
